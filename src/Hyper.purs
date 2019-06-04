@@ -33,7 +33,7 @@ hyperToString rank left right =
         else if rank == 3 then
           " ** "
         else
-          (<>) " h" $ Int.toStringAs Int.decimal rank
+          (<>) " h" $ Int.toStringAs Int.decimal rank <> " "
 
 
 between :: String -> String -> String -> String
