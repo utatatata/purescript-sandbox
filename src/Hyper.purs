@@ -1,30 +1,34 @@
 module Hyper (Exp(..), transform, transform1, transformCurrent) where
 
 import Prelude
+
 import Data.Int as Int
 import Data.List as List
-import Data.Maybe(Maybe(..))
+import Data.Maybe (Maybe(..))
 import Data.Maybe as Maybe
 import Data.String.Common as String
+import Data.TraversableWithIndex (traverseWithIndex)
 
 
 data Exp
   = Hyper Exp Int Exp
   | Nat Int
-
-hyperToString :: Int -> String
-hyperToString rank =
-  if rank == 1 then
-    "+"
+  
+hyperToString :: String -> Int -> String -> String
+hyperToString left rank right =
+  if rank == 0 then
+    "succ " <> right
+  else if rank == 1 then
+    left <> " + " <> right
   else if rank == 2 then
-    "*"
+    left <> " * " <> right
   else if rank == 3 then
-    "**"
+    left <> " ** " <> right
   else
-    "h" <> (Int.toStringAs Int.decimal rank)
+    left <> " h" <> (Int.toStringAs Int.decimal rank) <> " " <> right
 
 instance showExp :: Show Exp where
-  show (Hyper exp1 rank exp2) = "(" <> show exp1 <> " " <> hyperToString rank <> " " <> show exp2 <> ")"
+  show (Hyper left rank right)= "(" <> hyperToString (show left) rank (show right) <> ")"
   show (Nat n) = Int.toStringAs Int.decimal n
 
 
