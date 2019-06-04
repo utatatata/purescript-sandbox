@@ -25,10 +25,5 @@ main =
       log $ show exp2
       log $ "-> " <> (show $ exp2 # transform1)
       log $ "-> " <> (show $ exp2 # transform1 <<< transform1)
-      log $ "-> " <> (show $ exp2 # applyN 2 transform1)
-      log $ "-> " <> (show $ exp2 # applyN 3 transform1)
-      log $ "-> " <> (show $ exp2 # applyN 4 transform1)
-      log $ "-> " <> (show $ exp2 # applyN 5 transform1)
-      log $ "-> " <> (show $ exp2 # applyN 6 transform1)
-      log $ "-> " <> (show $ exp2 # applyN 7 transform1)
-      log $ "-> " <> (show $ exp2 # applyN 8 transform1)
+      for_ (0 .. 8) \n -> do
+        log $ "-> " <> (show $ exp2 # applyN n transform1)

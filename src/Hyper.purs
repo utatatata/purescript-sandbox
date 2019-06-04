@@ -13,23 +13,27 @@ import Data.TraversableWithIndex (traverseWithIndex)
 data Exp
   = Hyper Exp Int Exp
   | Nat Int
-  
-hyperToString :: String -> Int -> String -> String
-hyperToString left rank right =
-  if rank == 0 then
-    "succ " <> right
-  else if rank == 1 then
-    left <> " + " <> right
-  else if rank == 2 then
-    left <> " * " <> right
-  else if rank == 3 then
-    left <> " ** " <> right
-  else
-    left <> " h" <> (Int.toStringAs Int.decimal rank) <> " " <> right
+
 
 instance showExp :: Show Exp where
   show (Hyper left rank right)= "(" <> hyperToString (show left) rank (show right) <> ")"
   show (Nat n) = Int.toStringAs Int.decimal n
+  
+
+hyperToString :: String -> Int -> String -> String
+hyperToString left rank right =
+  if rank == 0 then
+    "succ " <> right
+  else
+    (<>) left <<< flip (<>) right $
+      if rank == 1 then
+        " + "
+      else if rank == 2 then
+        " * "
+      else if rank == 3 then
+        " ** "
+      else
+        (<>) " h" $ Int.toStringAs Int.decimal rank
 
 
 transformCurrent :: Exp -> Maybe Exp
@@ -49,20 +53,17 @@ transformCurrent (Hyper left@(Nat _) rank (Nat rightN)) =
 transformCurrent (Hyper _ _ _) =
   Nothing
 
+
 transform1 :: Exp -> Exp
 transform1 exp@(Nat _) = exp
 transform1 exp@(Hyper left rank right) =
-  case transformCurrent exp of
-    Just transformedExp ->
-      transformedExp
-    Nothing ->
-      Hyper (transform1 left) rank (transform1 right)
+  Maybe.maybe
+    (Hyper (transform1 left) rank $ transform1 right)
+    identity
+    $ transformCurrent exp
+
 
 transform :: Exp -> Exp
 transform exp@(Nat _) = exp
 transform exp =
-  case transform1 exp of
-    nat@(Nat _) ->
-      nat
-    transformedExp ->
-      transform transformedExp
+  transform $ transform1 exp
