@@ -41,8 +41,6 @@ between left right = (<>) left <<< flip (<>) right
 
 
 transformCurrent :: Exp -> Maybe Exp
-transformCurrent (Nat _) =
-  Nothing
 transformCurrent (Hyper rank left (Nat rightN))
   | rank == 0 = Just $ Nat $ rightN + 1
   | (Nat leftN) <- left
@@ -54,7 +52,7 @@ transformCurrent (Hyper rank left (Nat rightN))
   , rightN == 0 = Just $ Nat 1
 transformCurrent (Hyper rank left@(Nat _) (Nat rightN)) =
   Just $ Hyper (rank - 1) left $ Hyper rank left $ Nat $ rightN - 1
-transformCurrent (Hyper _ _ _) =
+transformCurrent _ =
   Nothing
 
 
