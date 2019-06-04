@@ -1,7 +1,6 @@
 module Hyper (Exp(..), transform, transform1, transformCurrent) where
 
 import Prelude
-
 import Data.Int as Int
 import Data.List as List
 import Data.Maybe (Maybe(..))
@@ -11,35 +10,40 @@ import Data.TraversableWithIndex (traverseWithIndex)
 
 
 data Exp
-  = Hyper Exp Int Exp
+  = Hyper Int Exp Exp
   | Nat Int
 
 
 instance showExp :: Show Exp where
-  show (Hyper left rank right)= "(" <> hyperToString (show left) rank (show right) <> ")"
+  show (Hyper rank left right)= hyperToString rank (show left) $ show right
   show (Nat n) = Int.toStringAs Int.decimal n
   
 
-hyperToString :: String -> Int -> String -> String
-hyperToString left rank right =
-  if rank == 0 then
-    "succ " <> right
-  else
-    (<>) left <<< flip (<>) right $
-      if rank == 1 then
-        " + "
-      else if rank == 2 then
-        " * "
-      else if rank == 3 then
-        " ** "
-      else
-        (<>) " h" $ Int.toStringAs Int.decimal rank
+hyperToString :: Int -> String -> String -> String
+hyperToString rank left right =
+  between "(" ")" $
+    if rank == 0 then
+      "succ " <> right
+    else
+      between left right $
+        if rank == 1 then
+          " + "
+        else if rank == 2 then
+          " * "
+        else if rank == 3 then
+          " ** "
+        else
+          (<>) " h" $ Int.toStringAs Int.decimal rank
+
+
+between :: String -> String -> String -> String
+between left right = (<>) left <<< flip (<>) right
 
 
 transformCurrent :: Exp -> Maybe Exp
 transformCurrent (Nat _) =
   Nothing
-transformCurrent (Hyper left rank (Nat rightN))
+transformCurrent (Hyper rank left (Nat rightN))
   | rank == 0 = Just $ Nat $ rightN + 1
   | (Nat leftN) <- left
   , rank == 1
@@ -48,17 +52,17 @@ transformCurrent (Hyper left rank (Nat rightN))
   , rightN == 0 = Just $ Nat 0
   | rank > 3
   , rightN == 0 = Just $ Nat 1
-transformCurrent (Hyper left@(Nat _) rank (Nat rightN)) =
-  Just $ Hyper left (rank - 1) $ Hyper left rank $ Nat $ rightN - 1
+transformCurrent (Hyper rank left@(Nat _) (Nat rightN)) =
+  Just $ Hyper (rank - 1) left $ Hyper rank left $ Nat $ rightN - 1
 transformCurrent (Hyper _ _ _) =
   Nothing
 
 
 transform1 :: Exp -> Exp
 transform1 exp@(Nat _) = exp
-transform1 exp@(Hyper left rank right) =
+transform1 exp@(Hyper rank left right) =
   Maybe.maybe
-    (Hyper (transform1 left) rank $ transform1 right)
+    (Hyper rank (transform1 left) $ transform1 right)
     identity
     $ transformCurrent exp
 

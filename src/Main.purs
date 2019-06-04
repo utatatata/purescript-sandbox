@@ -16,8 +16,8 @@ applyN n f =
 main :: Effect Unit
 main =
   let
-    exp1 = Hyper (Nat 2) 2 (Nat 3)
-    exp2 = Hyper (Hyper (Nat 1) 2 (Nat 1)) 1 (Nat 2)
+    exp1 = Hyper 2 (Nat 2) (Nat 3)
+    exp2 = Hyper 1 (Hyper 2 (Nat 1) (Nat 1)) (Nat 2)
   in
     do
       log $ show $ exp1
