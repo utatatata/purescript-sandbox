@@ -10,7 +10,7 @@ import Prelude
 -- import Data.Tuple (Tuple(..))
 -- import Data.Tuple as Tuple
 import Data.Either
-import Data.Foldable
+import Data.Foldable hiding (null)
 import Data.Function
 import Data.List
 import Data.Maybe
@@ -34,6 +34,19 @@ type Path
 type Depth
   = Int
 
+getVerteces :: Graph -> List Vertex
+getVerteces graph =
+  graph # concatMap (\(Tuple v1 v2) -> v1:v2:Nil)
+
+getCurrentVerteces :: List Path -> List Vertex
+getCurrentVerteces paths =
+  paths # concatMap
+    (\path ->
+      case head path of
+        Just v -> v:Nil
+        Nothing -> Nil
+    )
+
 getNext :: Graph -> Vertex -> Maybe (List Vertex)
 getNext g v =
   case g # filter ((eq v) <<< fst)
@@ -41,6 +54,10 @@ getNext g v =
     Nil -> Nothing
     vs -> Just vs
   
+getOneStepVerteces :: Graph -> Path -> Maybe (List Vertex)
+getOneStepVerteces _ Nil = Nothing
+getOneStepVerteces g (Cons current _) =
+  getNext g current
 
 getOneStepPaths :: Graph -> Path -> Maybe (List Path)
 getOneStepPaths _ Nil = Nothing
@@ -96,3 +113,24 @@ iddfs graph start goal =
         Right path -> Just path
         Left Unreachable -> Nothing
         Left Unreached -> go (depth + 1)
+
+dijkstra :: Graph -> Vertex -> Vertex -> Maybe Path
+dijkstra graph start goal =
+  go (getVerteces graph) ((start:Nil):Nil)
+  where
+    go :: List Vertex -> List Path -> Maybe Path
+    go unsearched currentPaths =
+      case currentPaths # find (reached goal) of
+        Just path -> Just path
+        Nothing ->
+          if null unsearched
+          then Nothing
+          else case getNextPaths graph currentPaths of
+            Nothing -> Nothing
+            Just paths -> go
+              (union unsearched
+                (getCurrentVerteces currentPaths)
+              )
+              paths
+
+
