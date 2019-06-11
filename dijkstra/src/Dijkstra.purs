@@ -44,10 +44,9 @@ getNext g v =
 
 getOneStepPaths :: Graph -> Path -> Maybe (List Path)
 getOneStepPaths _ Nil = Nothing
-getOneStepPaths _ (Cons _ Nil) = Nothing
-getOneStepPaths graph path@(Cons currentVertex (Cons previousVertex _)) =
+getOneStepPaths graph path@(Cons currentVertex _) =
   getNext graph currentVertex
-    <#> filter (flip elem $ path)
+    <#> filter (flip notElem $ path)
     <#> map (\v -> v:path)
 
 getNextPaths :: Graph -> List Path -> Maybe (List Path)
@@ -59,7 +58,6 @@ getNextPaths graph paths =
 
 getLimitedPaths :: Depth -> Graph -> Vertex -> Maybe (List Path)
 getLimitedPaths depth graph start =
-  -- applyN (getNextPaths graph) depth ((start:Nil):Nil)
   applyN ((=<<) (getNextPaths graph)) depth (Just ((start:Nil):Nil))
 
 
@@ -70,6 +68,10 @@ reached goal (Cons current _) = current == goal
 data FailedToSearch
   = Unreached
   | Nowhere
+
+instance showFailedToSearch :: Show FailedToSearch where
+  show Unreached = "Unreached"
+  show Nowhere = "Nowhere"
 
 depthLimitedSearch :: Depth -> Graph -> Vertex -> Vertex -> Either FailedToSearch Path
 depthLimitedSearch depth graph start goal =
