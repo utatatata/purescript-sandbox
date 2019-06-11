@@ -67,11 +67,11 @@ reached goal (Cons current _) = current == goal
 
 data FailedToSearch
   = Unreached
-  | Nowhere
+  | Unreachable
 
 instance showFailedToSearch :: Show FailedToSearch where
   show Unreached = "Unreached"
-  show Nowhere = "Nowhere"
+  show Unreachable = "Unreachable"
 
 depthLimitedSearch :: Depth -> Graph -> Vertex -> Vertex -> Either FailedToSearch Path
 depthLimitedSearch depth graph start goal =
@@ -84,7 +84,7 @@ depthLimitedSearch depth graph start goal =
           if depth == 0
           then Left Unreached
           else case getNextPaths graph currentDepthPaths of
-            Nothing -> Left Nowhere
+            Nothing -> Left Unreachable
             Just paths -> go (depth - 1) paths
 
 iddfs :: Graph -> Vertex -> Vertex -> Maybe Path
@@ -94,5 +94,5 @@ iddfs graph start goal =
     go depth =
       case depthLimitedSearch depth graph start goal of
         Right path -> Just path
-        Left Nowhere -> Nothing
+        Left Unreachable -> Nothing
         Left Unreached -> go (depth + 1)
