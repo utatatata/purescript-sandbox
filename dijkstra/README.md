@@ -1,4 +1,4 @@
-# dijkstra
+# Dijkstra
 
 
 ## Requirements
