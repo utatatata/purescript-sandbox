@@ -1,4 +1,4 @@
-# Hyper operator
+# Term rewriting
 
 
 ## Requirements
