@@ -1,6 +1,7 @@
 module Trs where
 
-import Prelude (class Show, class Eq, show, ($), (<$>), (<>), (<@>), (>>=), identity)
+import Prelude (class Show, class Eq, show, ($), (<$>), (<>), (<@>), (>>=), identity, pure, flip, bind)
+import Control.Monad.Cont (runCont)
 import Data.Maybe (Maybe(..))
 
 data Term a
@@ -53,3 +54,32 @@ rewriteCPS term = go term identity
   go (Snoc (Cons head tail) last) cont = go (Cons head (Snoc tail last)) cont
 
   go (Snoc term last) cont = go term (\fixed -> Snoc <$> fixed <@> last >>= go <@> cont)
+
+rewriteCont :: forall a. Term a -> Maybe (Term a)
+rewriteCont Nil = Just Nil
+
+rewriteCont (Cons head tail) =
+  (flip runCont) identity
+    $ do
+        fixed <- pure $ rewriteCont tail
+        pure $ (Cons head) <$> fixed
+
+rewriteCont (Concat Nil term) = rewrite term
+
+rewriteCont (Concat (Cons head tail) term) = rewrite $ Cons head (Concat tail term)
+
+rewriteCont (Concat term1 term2) =
+  (flip runCont) identity
+    $ do
+        fixed <- pure $ rewriteCont term1
+        pure $ Concat <$> fixed <@> term2 >>= rewriteCont
+
+rewriteCont (Snoc Nil last) = rewrite $ Cons last Nil
+
+rewriteCont (Snoc (Cons head tail) last) = rewrite $ Cons head (Snoc tail last)
+
+rewriteCont (Snoc term last) =
+  (flip runCont) identity
+    $ do
+        fixed <- pure $ rewriteCont term
+        pure $ Snoc <$> fixed <@> last >>= rewriteCont

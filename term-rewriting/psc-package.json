@@ -7,6 +7,7 @@
     "effect",
     "lists",
     "prelude",
-    "psci-support"
+    "psci-support",
+    "transformers"
   ]
 }
