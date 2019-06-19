@@ -1,6 +1,6 @@
 module Trs where
 
-import Prelude (class Show, class Eq, show, ($), (<$>), (<>))
+import Prelude (class Show, class Eq, show, ($), (<@>), (<$>), (<>))
 import Data.Maybe (Maybe(..))
 
 data Term a
@@ -17,9 +17,15 @@ instance showTermInt :: Show (Term Int) where
     show (Snoc x y) = "(Snoc " <> show x <> " " <> show y <> ")"
 
 rewrite :: forall a. Term a -> Maybe (Term a)
-rewrite (Cons x y) = (Cons x) <$> (rewrite y)
+rewrite Nil = Just Nil
+rewrite (Cons head tail) = (Cons head) <$> (rewrite tail)
+
 rewrite (Concat Nil term) = rewrite term
 rewrite (Concat (Cons head tail) term) =  rewrite $ Cons head (Concat tail term)
-rewrite (Snoc Nil a) = rewrite $ Cons a Nil
-rewrite (Snoc (Cons head tail) a) = rewrite $ Cons head (Snoc tail a)
-rewrite term = Just term
+rewrite (Concat term1 term2) = Concat <$> (rewrite term1) <@> term2
+
+rewrite (Snoc Nil last) = rewrite $ Cons last Nil
+rewrite (Snoc (Cons head tail) last) = rewrite $ Cons head (Snoc tail last)
+rewrite (Snoc term last) = Snoc <$> (rewrite term) <@> last
+
+
