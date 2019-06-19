@@ -3,7 +3,7 @@ module Main where
 import Prelude (Unit, discard, show, ($), (<>))
 import Effect (Effect)
 import Effect.Console (log, logShow)
-import Trs (Term(..), rewrite, rewriteCont)
+import Trs (Term(..), rewrite, rewriteCPS)
 
 main :: Effect Unit
 main =
@@ -32,4 +32,4 @@ main =
       logShow term3
       log $ "rewrite: " <> (show $ rewrite term3)
       logShow term4
-      log $ "rewriteCont: " <> (show $ rewriteCont term4)
+      log $ "rewriteCPS: " <> (show $ rewriteCPS term4)

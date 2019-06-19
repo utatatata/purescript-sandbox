@@ -34,8 +34,8 @@ rewrite (Snoc (Cons head tail) last) = rewrite $ Cons head (Snoc tail last)
 
 rewrite (Snoc term last) = Snoc <$> (rewrite term) <@> last >>= rewrite
 
-rewriteCont :: forall a. Term a -> Maybe (Term a)
-rewriteCont term = go term identity
+rewriteCPS :: forall a. Term a -> Maybe (Term a)
+rewriteCPS term = go term identity
   where
   go :: Term a -> (Maybe (Term a) -> Maybe (Term a)) -> Maybe (Term a)
   go Nil cont = cont $ Just Nil
