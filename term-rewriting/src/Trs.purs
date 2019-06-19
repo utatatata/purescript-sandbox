@@ -1,6 +1,6 @@
 module Trs where
 
-import Prelude (class Show, class Eq, show, ($), (<@>), (<$>), (<>))
+import Prelude (class Show, class Eq, show, ($), (<$>), (<>), (<@>), (>>=))
 import Data.Maybe (Maybe(..))
 
 data Term a
@@ -26,10 +26,11 @@ rewrite (Concat Nil term) = rewrite term
 
 rewrite (Concat (Cons head tail) term) = rewrite $ Cons head (Concat tail term)
 
-rewrite (Concat term1 term2) = Concat <$> (rewrite term1) <@> term2
+rewrite (Concat term1 term2) = Concat <$> (rewrite term1) <@> term2 >>= rewrite
 
 rewrite (Snoc Nil last) = rewrite $ Cons last Nil
 
 rewrite (Snoc (Cons head tail) last) = rewrite $ Cons head (Snoc tail last)
 
-rewrite (Snoc term last) = Snoc <$> (rewrite term) <@> last
+rewrite (Snoc term last) = Snoc <$> (rewrite term) <@> last >>= rewrite
+
