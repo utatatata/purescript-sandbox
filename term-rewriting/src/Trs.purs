@@ -1,6 +1,6 @@
 module Trs where
 
-import Prelude (class Show, class Eq, show, ($), (<$>), (<>), (<@>), (>>=))
+import Prelude (class Show, class Eq, show, ($), (<$>), (<>), (<@>), (>>=), identity)
 import Data.Maybe (Maybe(..))
 
 data Term a
@@ -34,3 +34,22 @@ rewrite (Snoc (Cons head tail) last) = rewrite $ Cons head (Snoc tail last)
 
 rewrite (Snoc term last) = Snoc <$> (rewrite term) <@> last >>= rewrite
 
+rewriteCont :: forall a. Term a -> Maybe (Term a)
+rewriteCont term = go term identity
+  where
+  go :: Term a -> (Maybe (Term a) -> Maybe (Term a)) -> Maybe (Term a)
+  go Nil cont = cont $ Just Nil
+
+  go (Cons head tail) cont = go tail (\fixed -> cont $ (Cons head) <$> fixed)
+
+  go (Concat Nil term) cont = go term cont
+
+  go (Concat (Cons head tail) term) cont = go (Cons head (Concat tail term)) cont
+
+  go (Concat term1 term2) cont = go term1 (\fixed -> Concat <$> fixed <@> term2 >>= go <@> cont)
+
+  go (Snoc Nil last) cont = go (Cons last Nil) cont
+
+  go (Snoc (Cons head tail) last) cont = go (Cons head (Snoc tail last)) cont
+
+  go (Snoc term last) cont = go term (\fixed -> Snoc <$> fixed <@> last >>= go <@> cont)
