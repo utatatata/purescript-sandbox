@@ -1,8 +1,7 @@
 module Trs where
 
-import Prelude
-import Data.List
-import Data.Maybe
+import Prelude (class Show, class Eq, show, ($), (<$>), (<>))
+import Data.Maybe (Maybe(..))
 
 data Term a
     = Nil

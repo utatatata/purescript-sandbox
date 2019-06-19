@@ -1,10 +1,9 @@
 module Main where
 
-import Prelude
+import Prelude (Unit, discard, show, ($), (<>))
 import Effect (Effect)
 import Effect.Console (log, logShow)
-import Data.Show (show)
-import Trs
+import Trs (Term(..), rewrite)
 
 main :: Effect Unit
 main =
