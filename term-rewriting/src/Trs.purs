@@ -1,6 +1,6 @@
 module Trs where
 
-import Prelude (class Eq, class Show, bind, identity, pure, show, ($), (<$>), (<>), (<@>), (>>=))
+import Prelude (class Eq, class Show, bind, identity, pure, show, ($), (<$>), (<>), (<@>))
 import Control.Monad.Cont (runCont)
 import Data.Maybe (Maybe(..))
 
@@ -19,44 +19,7 @@ instance showListInt :: Show (List Int) where
   show (Snoc x y) = "(Snoc " <> show x <> " " <> show y <> ")"
 
 rewrite :: forall a. List a -> Maybe (List a)
-rewrite Nil = Just Nil
-
-rewrite (Cons head tail) = (Cons head) <$> (rewrite tail)
-
-rewrite (Concat Nil term) = rewrite term
-
-rewrite (Concat (Cons head tail) term) = rewrite $ Cons head (Concat tail term)
-
-rewrite (Concat term1 term2) = Concat <$> (rewrite term1) <@> term2 >>= rewrite
-
-rewrite (Snoc Nil last) = rewrite $ Cons last Nil
-
-rewrite (Snoc (Cons head tail) last) = rewrite $ Cons head (Snoc tail last)
-
-rewrite (Snoc term last) = Snoc <$> (rewrite term) <@> last >>= rewrite
-
-rewriteCPS :: forall a. List a -> Maybe (List a)
-rewriteCPS t = go t identity
-  where
-  go :: List a -> (Maybe (List a) -> Maybe (List a)) -> Maybe (List a)
-  go Nil cont = cont $ Just Nil
-
-  go (Cons head tail) cont = go tail (\fixed -> cont $ (Cons head) <$> fixed)
-
-  go (Concat Nil term) cont = go term cont
-
-  go (Concat (Cons head tail) term) cont = go (Cons head (Concat tail term)) cont
-
-  go (Concat term1 term2) cont = go term1 (\fixed -> Concat <$> fixed <@> term2 >>= go <@> cont)
-
-  go (Snoc Nil last) cont = go (Cons last Nil) cont
-
-  go (Snoc (Cons head tail) last) cont = go (Cons head (Snoc tail last)) cont
-
-  go (Snoc term last) cont = go term (\fixed -> Snoc <$> fixed <@> last >>= go <@> cont)
-
-rewriteCont :: forall a. List a -> Maybe (List a)
-rewriteCont t = runCont (match t) identity
+rewrite t = runCont (match t) identity
   where
   go (Just term) = match term
 
