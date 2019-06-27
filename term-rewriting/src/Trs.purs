@@ -1,6 +1,6 @@
 module Trs where
 
-import Prelude (class Show, class Eq, show, ($), (<$>), (<>), (<@>), (>>=), identity, pure, flip, bind)
+import Prelude (class Show, class Eq, show, ($), (<$>), (<>), (<@>), (>>=), identity, pure)
 import Control.Monad.Cont (runCont)
 import Data.Maybe (Maybe(..))
 
@@ -36,7 +36,7 @@ rewrite (Snoc (Cons head tail) last) = rewrite $ Cons head (Snoc tail last)
 rewrite (Snoc term last) = Snoc <$> (rewrite term) <@> last >>= rewrite
 
 rewriteCPS :: forall a. Term a -> Maybe (Term a)
-rewriteCPS term = go term identity
+rewriteCPS t = go t identity
   where
   go :: Term a -> (Maybe (Term a) -> Maybe (Term a)) -> Maybe (Term a)
   go Nil cont = cont $ Just Nil
@@ -56,30 +56,24 @@ rewriteCPS term = go term identity
   go (Snoc term last) cont = go term (\fixed -> Snoc <$> fixed <@> last >>= go <@> cont)
 
 rewriteCont :: forall a. Term a -> Maybe (Term a)
-rewriteCont Nil = Just Nil
+rewriteCont t = runCont (match t) identity
+  where
+  go (Just term) = match term
 
-rewriteCont (Cons head tail) =
-  (flip runCont) identity
-    $ do
-        fixed <- pure $ rewriteCont tail
-        pure $ (Cons head) <$> fixed
+  go Nothing = pure Nothing
 
-rewriteCont (Concat Nil term) = rewrite term
+  match Nil = pure $ Just Nil
 
-rewriteCont (Concat (Cons head tail) term) = rewrite $ Cons head (Concat tail term)
+  match (Cons head tail) = match tail >>= (\fixed -> pure $ (Cons head) <$> fixed)
 
-rewriteCont (Concat term1 term2) =
-  (flip runCont) identity
-    $ do
-        fixed <- pure $ rewriteCont term1
-        pure $ Concat <$> fixed <@> term2 >>= rewriteCont
+  match (Concat Nil term) = match term
 
-rewriteCont (Snoc Nil last) = rewrite $ Cons last Nil
+  match (Concat (Cons head tail) term) = match $ Cons head (Concat tail term)
 
-rewriteCont (Snoc (Cons head tail) last) = rewrite $ Cons head (Snoc tail last)
+  match (Concat term1 term2) = match term1 >>= (\fixed -> go $ Concat <$> fixed <@> term2)
 
-rewriteCont (Snoc term last) =
-  (flip runCont) identity
-    $ do
-        fixed <- pure $ rewriteCont term
-        pure $ Snoc <$> fixed <@> last >>= rewriteCont
+  match (Snoc Nil last) = match $ Cons last Nil
+
+  match (Snoc (Cons head tail) last) = match $ Cons head (Snoc tail last)
+
+  match (Snoc term last) = match term >>= (\fixed -> go $ Snoc <$> fixed <@> last)
