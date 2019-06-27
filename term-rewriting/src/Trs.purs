@@ -4,21 +4,21 @@ import Prelude (class Eq, class Show, bind, identity, pure, show, ($), (<$>), (<
 import Control.Monad.Cont (runCont)
 import Data.Maybe (Maybe(..))
 
-data Term a
+data List a
   = Nil
-  | Cons a (Term a)
-  | Concat (Term a) (Term a)
-  | Snoc (Term a) a
+  | Cons a (List a)
+  | Concat (List a) (List a)
+  | Snoc (List a) a
 
-derive instance eqTermInt :: Eq (Term Int)
+derive instance eqListInt :: Eq (List Int)
 
-instance showTermInt :: Show (Term Int) where
+instance showListInt :: Show (List Int) where
   show Nil = "Nil"
   show (Cons x y) = "(Cons " <> show x <> " " <> show y <> ")"
   show (Concat x y) = "(Concat " <> show x <> " " <> show y <> ")"
   show (Snoc x y) = "(Snoc " <> show x <> " " <> show y <> ")"
 
-rewrite :: forall a. Term a -> Maybe (Term a)
+rewrite :: forall a. List a -> Maybe (List a)
 rewrite Nil = Just Nil
 
 rewrite (Cons head tail) = (Cons head) <$> (rewrite tail)
@@ -35,10 +35,10 @@ rewrite (Snoc (Cons head tail) last) = rewrite $ Cons head (Snoc tail last)
 
 rewrite (Snoc term last) = Snoc <$> (rewrite term) <@> last >>= rewrite
 
-rewriteCPS :: forall a. Term a -> Maybe (Term a)
+rewriteCPS :: forall a. List a -> Maybe (List a)
 rewriteCPS t = go t identity
   where
-  go :: Term a -> (Maybe (Term a) -> Maybe (Term a)) -> Maybe (Term a)
+  go :: List a -> (Maybe (List a) -> Maybe (List a)) -> Maybe (List a)
   go Nil cont = cont $ Just Nil
 
   go (Cons head tail) cont = go tail (\fixed -> cont $ (Cons head) <$> fixed)
@@ -55,7 +55,7 @@ rewriteCPS t = go t identity
 
   go (Snoc term last) cont = go term (\fixed -> Snoc <$> fixed <@> last >>= go <@> cont)
 
-rewriteCont :: forall a. Term a -> Maybe (Term a)
+rewriteCont :: forall a. List a -> Maybe (List a)
 rewriteCont t = runCont (match t) identity
   where
   go (Just term) = match term
