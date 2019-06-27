@@ -1,6 +1,6 @@
 module Trs where
 
-import Prelude (class Show, class Eq, show, ($), (<$>), (<>), (<@>), (>>=), identity, pure)
+import Prelude (class Eq, class Show, bind, identity, pure, show, ($), (<$>), (<>), (<@>), (>>=))
 import Control.Monad.Cont (runCont)
 import Data.Maybe (Maybe(..))
 
@@ -64,16 +64,22 @@ rewriteCont t = runCont (match t) identity
 
   match Nil = pure $ Just Nil
 
-  match (Cons head tail) = match tail >>= (\fixed -> pure $ (Cons head) <$> fixed)
+  match (Cons head tail) = do
+    fixed <- match tail
+    pure $ (Cons head) <$> fixed
 
   match (Concat Nil term) = match term
 
   match (Concat (Cons head tail) term) = match $ Cons head (Concat tail term)
 
-  match (Concat term1 term2) = match term1 >>= (\fixed -> go $ Concat <$> fixed <@> term2)
+  match (Concat term1 term2) = do
+    fixed <- match term1
+    go $ Concat <$> fixed <@> term2
 
   match (Snoc Nil last) = match $ Cons last Nil
 
   match (Snoc (Cons head tail) last) = match $ Cons head (Snoc tail last)
 
-  match (Snoc term last) = match term >>= (\fixed -> go $ Snoc <$> fixed <@> last)
+  match (Snoc term last) = do
+    fixed <- match term
+    go $ Snoc <$> fixed <@> last
