@@ -11,3 +11,7 @@
 ## Term rewriting
 
 [term-rewriting](./term-rewriting/README.md)
+
+## Reinventing the monads
+
+[reinventing-the-monads](./reinventing-the-monads/README.md)
