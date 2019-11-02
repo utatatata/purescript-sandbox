@@ -1,14 +1,6 @@
-module Dijkstra where
+module Iddfs where
 
 import Prelude
--- import Data.Foldable (class Foldable)
--- import Data.Foldable as Foldable
--- import Data.List (List(..), (:))
--- import Data.List as List
--- import Data.Maybe (Maybe(..))
--- import Data.Maybe as Maybe
--- import Data.Tuple (Tuple(..))
--- import Data.Tuple as Tuple
 import Data.Either
 import Data.Foldable hiding (null)
 import Data.Function

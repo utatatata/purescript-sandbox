@@ -4,9 +4,9 @@
 
 [hyper-operator](./hyper-operator/README.md)
 
-## Dijkstra
+## IDDFS
 
-[dijkstra](./dijkstra/README.md)
+[iddfs](./iddfs/README.md)
 
 ## Term rewriting
 

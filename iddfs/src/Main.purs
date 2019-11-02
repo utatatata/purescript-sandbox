@@ -6,7 +6,7 @@ import Data.Show
 import Data.Tuple
 import Effect (Effect)
 import Effect.Console (log, logShow)
-import Dijkstra
+import Iddfs
 
 main :: Effect Unit
 main =
