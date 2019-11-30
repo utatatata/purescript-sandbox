@@ -1,4 +1,4 @@
--- | Reference: RFC 4180 (https://tools.ietf.org/html/rfc4180#section-2)
+-- | Reference: RFC 4180 (https://tools.ietf.org/html/rfc4180)
 module Data.CSV.Parser where
 
 import Prelude hiding (between)
