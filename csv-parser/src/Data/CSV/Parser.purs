@@ -2,25 +2,39 @@
 module Data.CSV.Parser where
 
 import Prelude hiding (between)
+
 import Control.Alt ((<|>))
+import Control.Monad.State (gets)
 import Data.Array as A
 import Data.CSV (CSV(..), CSVBody, CSVField(..), CSVHeader, CSVName, CSVRecord)
 import Data.Char (toCharCode)
 import Data.Either (Either)
+import Data.List (List(..), many)
 import Data.List.NonEmpty (cons')
+import Data.String as S
 import Data.String.CodeUnits (fromCharArray)
-import Text.Parsing.Parser (ParseError, Parser, runParser)
-import Text.Parsing.Parser.Combinators (between, sepBy, sepEndBy)
+import Text.Parsing.Parser (ParseError, ParseState(..), Parser, fail, runParser)
+import Text.Parsing.Parser.Combinators (between, sepEndBy)
 import Text.Parsing.Parser.String (char, eof, satisfy)
 
-parse :: String -> Either ParseError CSV
-parse file = runParser file csv
+type Param =
+  { header :: ParamHeader
+  }
 
-csv :: Parser String CSV
-csv = file <* eof
+data ParamHeader
+  = Presence
+  | Absence
+
+parse :: Param -> String -> Either ParseError CSV
+parse param str = runParser str $ csv param
+
+csv :: Param -> Parser String CSV
+csv param = file <* eof
   where
   file :: Parser String CSV
-  file = withHeader <|> withoutHeader
+  file = case param.header of
+    Presence -> withHeader
+    Absence -> withoutHeader
 
   withHeader :: Parser String CSV
   withHeader = WithHeader <$> header <* crlf <*> body
@@ -29,16 +43,25 @@ csv = file <* eof
   withoutHeader = WithoutHeader <$> body
 
   header :: Parser String CSVHeader
-  -- header = name `sepBy1` comma
-  header = cons' <$> name <*> name `sepBy` comma
+  header = cons' <$> name <*> many (comma *> name)
 
+  -- | The last record int the file may or may have an ending line break.
+  -- | So 'sepEndBy' is used.
   body :: Parser String CSVBody
-  -- body = record `sepEndBy1` crlf
-  body = cons' <$> record <*> record `sepEndBy` crlf
+  body = record `sepEndBy` crlf >>= case _ of
+    Nil ->
+      fail "requires one or more records"
+    Cons x xs ->
+      pure $ cons' x xs
 
   record :: Parser String CSVRecord
-  -- record = field `sepBy1` comma
-  record = cons' <$> field <*> field `sepBy` comma
+  -- record = cons' <$> field <*> many (comma *> field)
+  record = do
+    input <- gets \(ParseState input _ _) -> input
+    if S.null input then
+      fail "Records that have only one non-escaped field and end with EOF are not allowed."
+    else
+      cons' <$> field <*> many (comma *> field)
 
   name :: Parser String CSVName
   name = field
@@ -72,7 +95,7 @@ csv = file <* eof
 
   -- | %x20-21 / %x23-2B / %x2D-7E
   isTextdata :: Char -> Boolean
-  isTextdata c = 32 <= uc || uc <= 33 || 35 <= uc || uc <= 43 || 45 <= uc || uc <= 126
+  isTextdata c = (32 <= uc && uc <= 33) || (35 <= uc && uc <= 43) || (45 <= uc && uc <= 126)
     where
     uc :: Int
     uc = toCharCode c
