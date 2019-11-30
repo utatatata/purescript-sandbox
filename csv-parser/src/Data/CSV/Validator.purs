@@ -12,7 +12,7 @@ import Prelude
 import Data.CSV (CSV(..))
 import Data.Either (Either(..))
 import Data.Foldable (any, length)
-import Data.List (List(..), (:))
+import Data.List.NonEmpty (NonEmptyList, cons, uncons)
 
 data ValidCSV = ValidCSV CSV
 
@@ -20,13 +20,13 @@ data ValidateError = ValidateError CSVInfo
 
 type CSVInfo =
   { lines :: Int
-  , cols :: List Int
+  , cols :: NonEmptyList Int
   }
 
 getCSVInfo :: CSV -> CSVInfo
 getCSVInfo (WithHeader header body) =
   { lines: 1 + (length body)
-  , cols: length header : map length body
+  , cols: length header `cons` map length body
   }
 getCSVInfo (WithoutHeader body) =
   { lines: length body
@@ -34,10 +34,9 @@ getCSVInfo (WithoutHeader body) =
   }
 
 validate :: CSV -> Either ValidateError ValidCSV
-validate csv = case info.cols of
-    Nil -> Left $ ValidateError info
-    xs@(Cons x _) ->
-      if any (eq x) xs then
+validate csv = case uncons info.cols of
+    { head, tail: tail } ->
+      if any (eq head) tail then
         pure $ ValidCSV csv
       else
         Left $ ValidateError info

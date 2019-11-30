@@ -8,9 +8,10 @@ import Data.Array as A
 import Data.CSV (CSV(..), CSVBody, CSVField(..), CSVHeader, CSVName, CSVRecord)
 import Data.Char (toCharCode)
 import Data.Either (Either)
+import Data.List.NonEmpty (cons')
 import Data.String.CodeUnits (fromCharArray)
 import Text.Parsing.Parser (ParseError, Parser, runParser)
-import Text.Parsing.Parser.Combinators (between, sepBy1, sepEndBy1)
+import Text.Parsing.Parser.Combinators (between, sepBy, sepEndBy)
 import Text.Parsing.Parser.String (char, eof, satisfy)
 
 parse :: String -> Either ParseError CSV
@@ -29,13 +30,16 @@ csv = file <* eof
   withoutHeader = WithoutHeader <$> body
 
   header :: Parser String CSVHeader
-  header = name `sepBy1` comma
+  -- header = name `sepBy1` comma
+  header = cons' <$> name <*> name `sepBy` comma
 
   body :: Parser String CSVBody
-  body = record `sepEndBy1` crlf
+  -- body = record `sepEndBy1` crlf
+  body = cons' <$> record <*> record `sepEndBy` crlf
 
   record :: Parser String CSVRecord
-  record = field `sepBy1` comma
+  -- record = field `sepBy1` comma
+  record = cons' <$> field <*> field `sepBy` comma
 
   name :: Parser String CSVName
   name = field

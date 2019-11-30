@@ -1,16 +1,16 @@
 module Data.CSV where
 
-import Data.List (List)
+import Data.List.NonEmpty (NonEmptyList)
 
 data CSV
   = WithHeader CSVHeader CSVBody
   | WithoutHeader CSVBody
 
-type CSVHeader = List CSVName
+type CSVHeader = NonEmptyList CSVName
 
-type CSVBody = List CSVRecord
+type CSVBody = NonEmptyList CSVRecord
 
-type CSVRecord = List CSVField
+type CSVRecord = NonEmptyList CSVField
 
 type CSVName = CSVField
 
