@@ -6,13 +6,17 @@ data CSV
   = WithHeader CSVHeader CSVBody
   | WithoutHeader CSVBody
 
-type CSVHeader = NonEmptyList CSVName
+type CSVHeader
+  = NonEmptyList CSVName
 
-type CSVBody = NonEmptyList CSVRecord
+type CSVBody
+  = NonEmptyList CSVRecord
 
-type CSVRecord = NonEmptyList CSVField
+type CSVRecord
+  = NonEmptyList CSVField
 
-type CSVName = CSVField
+type CSVName
+  = CSVField
 
 data CSVField
   = Escaped String

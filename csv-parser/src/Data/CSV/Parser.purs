@@ -2,7 +2,6 @@
 module Data.CSV.Parser where
 
 import Prelude hiding (between)
-
 import Control.Alt ((<|>))
 import Data.Array as A
 import Data.CSV (CSV(..), CSVBody, CSVField(..), CSVHeader, CSVName, CSVRecord)
@@ -66,7 +65,7 @@ csv = file <* eof
   lf = char '\n'
 
   crlf :: Parser String String
-  crlf = (\c1 c2 -> fromCharArray [c1, c2]) <$> cr <*> lf
+  crlf = (\c1 c2 -> fromCharArray [ c1, c2 ]) <$> cr <*> lf
 
   textdata :: Parser String Char
   textdata = satisfy isTextdata
