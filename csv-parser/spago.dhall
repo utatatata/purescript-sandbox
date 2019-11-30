@@ -8,6 +8,7 @@ You can edit this file as you like.
     , "effect"
     , "either"
     , "lists"
+    , "newtype"
     , "parsing"
     , "psci-support"
     , "spec"

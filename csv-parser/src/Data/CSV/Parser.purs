@@ -2,7 +2,6 @@
 module Data.CSV.Parser where
 
 import Prelude hiding (between)
-
 import Control.Alt ((<|>))
 import Control.Monad.State (gets)
 import Data.Array as A
@@ -17,9 +16,9 @@ import Text.Parsing.Parser (ParseError, ParseState(..), Parser, fail, runParser)
 import Text.Parsing.Parser.Combinators (between, sepEndBy)
 import Text.Parsing.Parser.String (char, eof, satisfy)
 
-type Param =
-  { header :: ParamHeader
-  }
+type Param
+  = { header :: ParamHeader
+    }
 
 data ParamHeader
   = Presence
@@ -48,11 +47,11 @@ csv param = file <* eof
   -- | The last record int the file may or may have an ending line break.
   -- | So 'sepEndBy' is used.
   body :: Parser String CSVBody
-  body = record `sepEndBy` crlf >>= case _ of
-    Nil ->
-      fail "requires one or more records"
-    Cons x xs ->
-      pure $ cons' x xs
+  body =
+    record `sepEndBy` crlf
+      >>= case _ of
+          Nil -> fail "requires one or more records"
+          Cons x xs -> pure $ cons' x xs
 
   record :: Parser String CSVRecord
   -- record = cons' <$> field <*> many (comma *> field)

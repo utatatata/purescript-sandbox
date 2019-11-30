@@ -1,7 +1,6 @@
 module Data.CSV where
 
 import Prelude
-
 import Data.List.NonEmpty (NonEmptyList)
 
 data CSV

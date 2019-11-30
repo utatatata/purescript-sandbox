@@ -1,38 +1,47 @@
-module Data.CSV.Validator
-  ( ValidCSV
-  , ValidateError(..)
-  , CSVInfo
-  , getCSVInfo
-  , validate
-  ) where
+module Data.CSV.Validator where
 
 import Prelude
 import Data.CSV (CSV(..))
 import Data.Either (Either(..))
 import Data.Foldable (any, length)
 import Data.List.NonEmpty (NonEmptyList, cons, uncons)
+import Data.Newtype (class Newtype)
 
-data ValidCSV
+newtype ValidCSV
   = ValidCSV CSV
+
+derive instance newtypeValidCSV :: Newtype ValidCSV _
+
+instance showValidCSV :: Show ValidCSV where
+  show (ValidCSV csv) = "(ValidCSV " <> show csv <> ")"
 
 data ValidateError
   = ValidateError CSVInfo
 
-type CSVInfo
-  = { lines :: Int
-    , cols :: NonEmptyList Int
-    }
+instance showValidateError :: Show ValidateError where
+  show (ValidateError info) = "(ValidateError " <> show info <> ")"
+
+newtype CSVInfo
+  = CSVInfo
+  { lines :: Int
+  , cols :: NonEmptyList Int
+  }
+
+instance showCSVInfo :: Show CSVInfo where
+  show (CSVInfo { lines, cols }) = "(CSVInfo { lines: " <> show lines <> ", cols: " <> show cols <> " })"
 
 getCSVInfo :: CSV -> CSVInfo
 getCSVInfo (WithHeader header body) =
-  { lines: 1 + (length body)
-  , cols: length header `cons` map length body
-  }
+  CSVInfo
+    { lines: 1 + (length body)
+    , cols: length header `cons` map length body
+    }
 
 getCSVInfo (WithoutHeader body) =
-  { lines: length body
-  , cols: map length body
-  }
+  CSVInfo
+    { lines: length body
+    , cols: map length body
+    }
 
 validate :: CSV -> Either ValidateError ValidCSV
 validate csv = case uncons info.cols of
@@ -40,6 +49,6 @@ validate csv = case uncons info.cols of
     if any (eq head) tail then
       pure $ ValidCSV csv
     else
-      Left $ ValidateError info
+      Left $ ValidateError $ CSVInfo info
   where
-  info = getCSVInfo csv
+  CSVInfo info = getCSVInfo csv
