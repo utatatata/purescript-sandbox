@@ -5,7 +5,7 @@ You can edit this file as you like.
 { name =
     "reinventing-the-monads"
 , dependencies =
-    [ "console", "effect", "psci-support", "spec", "tuples" ]
+    [] : List Text
 , packages =
     ./packages.dhall
 , sources =

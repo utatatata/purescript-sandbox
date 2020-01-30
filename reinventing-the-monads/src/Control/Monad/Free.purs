@@ -1,6 +1,11 @@
 module Data.Monad.Free where
 
-import Prelude
+import Control.Applicative (class Applicative)
+import Control.Apply (class Apply, apply)
+import Control.Bind (class Bind, bind)
+import Control.Monad (class Monad)
+import Data.Function (flip)
+import Data.Functor (class Functor, map)
 
 data Free f a
   = Pure a
