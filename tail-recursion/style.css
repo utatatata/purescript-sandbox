@@ -1,5 +1,10 @@
 @import 'default';
 
+section.lead {
+  justify-content: center;
+  text-align: center;
+}
+
 code span {
   font-size: 90%;
 }

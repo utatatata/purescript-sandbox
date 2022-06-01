@@ -3,7 +3,34 @@ marp: true
 theme: style
 ---
 
+<!-- _class: lead -->
+
 # **トランポリンによるStack safeな再帰**
+
+## Takuma Uda
+
+
+---
+
+# 自己紹介
+
+- 名前: 宇田拓馬
+- 所属: JAIST 青木研究室 D2
+- 研究内容: 形式仕様記述, 定理証明支援
+- 趣味: 読書, プログラミング
+- Twitter: @hennin_ltn
+
+
+---
+
+# 目次
+- 再帰関数
+- Stack overflow
+- 末尾呼び出し最適化
+- アキュムレータによる末尾再帰化
+- トランポリンによる最適化
+- トランポリンモナド
+
 
 ---
 
@@ -94,7 +121,7 @@ fact_acc 1 10
 
 ---
 
-# アキュムレータによる末尾再帰への書き換え
+# アキュムレータによる末尾再帰化
 
 ```haskell
 fib :: Int -> Int
@@ -142,3 +169,91 @@ function runTrampoline(t) {
 # トランポリンによる最適化
 
 ![trampoline.js](./assets/call-stack-trampoline.png)
+
+
+---
+
+# トランポリン型
+
+- トランポリン: 関数を任意回ネストしたデータ構造
+  型としてどう表現する？
+- 型クラス Free
+
+```haskell
+type Trampoline = Free (Function Unit)
+
+data Free f a
+  = Pure a
+  | Join (f (Free f a))
+```
+
+```haskell
+a :: Int
+f :: Function Unit
+
+Pure 10
+Join \_ -> Pure 10
+Join \_ -> (Join \_ -> Pure 10)
+Join \_ -> (Join \_ -> (Join \_ -> Pure 10))
+```
+
+```haskell
+f :: Function a b
+f :: (->) a b
+f :: a -> b
+```
+
+
+---
+
+# トランポリンによる末尾再帰化
+
+```haskell
+fact_acc :: Int -> Int -> Int
+fact_acc acc 0 = acc
+fact_acc acc n = fact_acc (n * acc) (n - 1)
+
+fact_trampoline :: Int -> Int -> Trampoline Int
+fact_trampoline acc 0 = done acc
+fact_trampoline acc n =
+  wrap \_ -> fact_trampoline (n * acc) (n - 1)
+
+runTrampoline $ fact_trampoline 1 10
+```
+
+```haskell
+fib_acc :: Int -> Int -> Int -> Int
+fib_acc a b 0 = a
+fib_acc a b n = fib_acc b (a + b) (n - 1)
+
+fib_trampoline :: Int -> Int -> Int -> Trampoline Int
+fib_trampoline a b 0 = done a
+fib_trampoline a b n = fib_acc b (a + b) (n - 1)
+```
+
+
+---
+
+# モナドとしてのトランポリン
+
+- fがFunctorであるとき, Free f aはMonadとなる
+- Function aはFunctor (関数合成がmapになる)
+- Monadとなると何がうれしい？
+  - do記法が使える
+
+```haskell
+instance Functor (Function t) where
+  map :: Function t a -> (a -> b) -> Function t b
+  map f g x = (f . g) x
+```
+
+```haskell
+head_trampoline :: [Int] -> Trampoline Int
+tail_trampoline :: [Int] -> Trampoline Int
+
+head_tail_trampoline :: [Int] -> Trampoline Int
+head_tail_trampoline xs = do
+  h <- head_trampoline xs
+  l <- last_trampoline xs
+  pure $ [h, l]
+```
