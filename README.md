@@ -23,3 +23,7 @@
 ## Tail recursion
 
 [tail-recursion](./tail-recursion/README.md)
+
+## Profunctor Lenses
+
+[profunctor-lenses](./profunctor-lenses/README.md)
